@@ -206,8 +206,6 @@ jobs:
       
       redis:
         image: redis:7-alpine
-        env:
-          REDIS_PASSWORD: testpassword
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -220,29 +218,71 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify services are running
-        run: |
-          echo "PostgreSQL is available at localhost:5432"
-          echo "Redis is available at localhost:6379"
-          
-      - name: Test PostgreSQL connection
-        run: |
-          sudo apt-get install -y postgresql-client
-          PGPASSWORD=testpassword psql -h localhost -U postgres -d urlshortener_test -c "SELECT version();"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Test Redis connection
+      - name: Install dependencies
         run: |
-          sudo apt-get install -y redis-tools
-          redis-cli -h localhost ping
+          cd backend
+          pip install -r requirements.txt
+          pip install pytest requests pytest-timeout
 
-      - name: Run integration tests placeholder
+      - name: Create database tables
         run: |
-          echo "Integration tests would run here"
-          echo "PostgreSQL: Connected successfully"
-          echo "Redis: Connected successfully"
-          echo "API endpoints: Ready for testing"
-          echo "Database interactions: Ready for testing"
-          echo "Redis caching: Ready for testing"
+          cd backend
+          python -c "from database import engine, Base; Base.metadata.create_all(bind=engine)"
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: urlshortener_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+
+      - name: Start API server in background
+        run: |
+          cd backend
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 > api.log 2>&1 &
+          echo $! > api.pid
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: urlshortener_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          BASE_URL: http://localhost:8000
+
+      - name: Wait for API to be ready
+        run: |
+          timeout 60 bash -c 'until curl -sf http://localhost:8000/api/v1/health > /dev/null; do sleep 2; echo "Waiting for API..."; done'
+          echo "API is ready!"
+
+      - name: Run integration tests
+        run: |
+          cd backend
+          pytest tests/integration/ -v --timeout=30 --tb=short
+        env:
+          API_URL: http://localhost:8000
+
+      - name: Show API logs on failure
+        if: failure()
+        run: |
+          echo "=== API Logs ==="
+          cat backend/api.log || echo "No API logs found"
+
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f backend/api.pid ]; then
+            kill $(cat backend/api.pid) 2>/dev/null || true
+          fi
 
   # STAGE 4: RELEASE (Push to Registry)
   release:
