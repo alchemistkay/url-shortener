@@ -7,6 +7,13 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# ADD THIS SECTION
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  packages: write
+
 env:
   PYTHON_VERSION: '3.11'
   REGISTRY: ghcr.io
