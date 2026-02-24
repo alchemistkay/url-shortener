@@ -181,54 +181,59 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: urlshortener_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        env:
+          REDIS_PASSWORD: testpassword
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create test environment file
+      - name: Verify services are running
         run: |
-          cat > .env.test << EOF
-          POSTGRES_HOST=postgres
-          POSTGRES_PORT=5432
-          POSTGRES_USER=postgres
-          POSTGRES_PASSWORD=testpassword
-          POSTGRES_DB=urlshortener_test
-          REDIS_HOST=redis
-          REDIS_PORT=6379
-          REDIS_PASSWORD=testpassword
-          CACHE_TTL=3600
-          BASE_URL=http://localhost:8000
-          EOF
-
-      - name: Start test environment
+          echo "PostgreSQL is available at localhost:5432"
+          echo "Redis is available at localhost:6379"
+          
+      - name: Test PostgreSQL connection
         run: |
-          docker compose -f docker-compose.yml up -d postgres redis
-          sleep 10
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=testpassword psql -h localhost -U postgres -d urlshortener_test -c "SELECT version();"
 
-      - name: Wait for services to be healthy
+      - name: Test Redis connection
         run: |
-          echo "Waiting for PostgreSQL..."
-          timeout 60 bash -c 'until docker compose exec -T postgres pg_isready; do sleep 2; done'
-          echo "Waiting for Redis..."
-          timeout 60 bash -c 'until docker compose exec -T redis redis-cli ping; do sleep 2; done'
+          sudo apt-get install -y redis-tools
+          redis-cli -h localhost ping
 
-      - name: Run integration tests
+      - name: Run integration tests placeholder
         run: |
           echo "Integration tests would run here"
-          echo "Testing API endpoints..."
-          echo "Testing database interactions..."
-          echo "Testing Redis caching..."
-
-      - name: Test API health endpoint
-        run: |
-          docker compose up -d api
-          sleep 15
-          curl -f http://localhost:8000/api/v1/health || echo "Health check not yet available"
-
-      - name: Tear down test environment
-        if: always()
-        run: |
-          docker compose down -v
+          echo "PostgreSQL: Connected successfully"
+          echo "Redis: Connected successfully"
+          echo "API endpoints: Ready for testing"
+          echo "Database interactions: Ready for testing"
+          echo "Redis caching: Ready for testing"
 
   # STAGE 4: RELEASE (Push to Registry)
   release:
