@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
-from cache import (cache_url, get_cached_url,invalidate_url,get_cache_stats,test_connection)
+from cache import (cache_url, get_cached_url,get_cache_stats,test_connection)
 from prometheus_client import Counter, Histogram, Gauge, Info
 from prometheus_fastapi_instrumentator import Instrumentator
 import os
@@ -391,7 +391,7 @@ def shorten_url(
     urls_created_total.labels(is_custom=str(is_custom)).inc()
     
     # Update gauge
-    active_count = db.query(URL).filter(URL.is_active == True).count()
+    active_count = db.query(URL).filter(URL.is_active).count()
     active_urls_gauge.set(active_count)
 
     # Return response matching URLResponse schema

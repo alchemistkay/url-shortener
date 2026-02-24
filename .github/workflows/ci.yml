@@ -102,15 +102,13 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio
+          pip install pytest pytest-cov pytest-asyncio requests
 
       - name: Run unit tests
         run: |
           cd backend
           pytest --version || echo "Creating basic test structure"
-          mkdir -p tests
-          echo "def test_placeholder(): pass" > tests/test_basic.py
-          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term || true
+          pytest tests/test_basic.py -v --cov=. --cov-report=xml --cov-report=term --ignore=tests/integration
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

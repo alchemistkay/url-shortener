@@ -1,7 +1,6 @@
 """Integration tests for URL Shortener API"""
 
 import requests
-import pytest
 import time
 import random
 import string

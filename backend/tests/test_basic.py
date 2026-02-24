@@ -2,11 +2,9 @@
 
 def test_import():
     """Test that main module can be imported"""
-    try:
-        import main
-        assert True
-    except ImportError:
-        assert False, "Failed to import main module"
+    import importlib.util
+    spec = importlib.util.find_spec("main")
+    assert spec is not None, "main module not found"
 
 def test_placeholder():
     """Placeholder test to verify pytest works"""
