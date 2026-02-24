@@ -1,0 +1,22 @@
+# FastAPI framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+
+# Redis cache
+redis==5.0.1
+
+# Environment & Configuration
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
+pydantic[email]==2.5.3
+
+# QR Code generation
+# qrcode[pil]==7.4.2
+
+# Monitoring
+prometheus-client==0.20.0
+prometheus-fastapi-instrumentator==7.0.0

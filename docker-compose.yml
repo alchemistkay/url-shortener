@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # BACKEND API
+  # ============================================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: urlshortener-api
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - POSTGRES_HOST=postgres  # ← Container name of existing postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=urlshortener
+      - REDIS_HOST=redis  # ← Container name of existing redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_TTL=3600
+      - BASE_URL=https://short.k4scloud.com
+    
+    # Networks - connect to existing networks!
+    networks:
+      - traefik-network  # For Traefik routing
+      - postgres_postgres-network  # For database access
+      - redis_redis-network
+    
+    # Traefik labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      
+      # API routes
+      - "traefik.http.routers.urlshort-api.rule=Host(`short.k4scloud.com`) && PathPrefix(`/api/v1`)"
+      - "traefik.http.routers.urlshort-api.entrypoints=websecure"
+      - "traefik.http.routers.urlshort-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.urlshort-api.priority=10"
+      - "traefik.http.services.urlshort-api.loadbalancer.server.port=8000"
+      
+      # Redirects (short codes)
+      - "traefik.http.routers.urlshort-redirects.rule=Host(`short.k4scloud.com`) && !PathPrefix(`/api/v1`) && !Path(`/`) && !PathPrefix(`/style.css`) && !PathPrefix(`/app.js`)"
+      - "traefik.http.routers.urlshort-redirects.entrypoints=websecure"
+      - "traefik.http.routers.urlshort-redirects.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.urlshort-redirects.priority=5"
+      - "traefik.http.routers.urlshort-redirects.service=urlshort-api"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # FRONTEND
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: urlshortener-frontend
+    restart: unless-stopped
+    
+    # Networks
+    networks:
+      - traefik-network
+    
+    # Traefik labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.urlshort-frontend.rule=Host(`short.k4scloud.com`)"
+      - "traefik.http.routers.urlshort-frontend.entrypoints=websecure"
+      - "traefik.http.routers.urlshort-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.urlshort-frontend.priority=1"
+      - "traefik.http.services.urlshort-frontend.loadbalancer.server.port=80"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      # test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ============================================
+# NETWORKS - Use existing networks!
+# ============================================
+networks:
+  traefik-network:
+    external: true
+  postgres_postgres-network:
+    external: true
+  redis_redis-network:
+    external: true
