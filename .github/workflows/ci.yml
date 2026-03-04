@@ -365,7 +365,7 @@ jobs:
         with:
           body_path: release-notes.md
           generate_release_notes: true
-
+          
   
   # STAGE 5: DEPLOY (Automated Deployment)
   deploy:
@@ -385,17 +385,39 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 700 ~/.ssh
+          
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          
+          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          chmod 644 ~/.ssh/known_hosts
+          
+          cat > ~/.ssh/config << EOF
+          Host vps
+            HostName $VPS_HOST
+            Port $VPS_PORT
+            User $VPS_USER
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking accept-new
+          EOF
+          chmod 600 ~/.ssh/config
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
 
       - name: Test SSH connection
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
+          echo "Testing SSH connection..."
+          ssh vps "echo 'SSH connection successful'"
 
       - name: Deploy to VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+          echo "Starting deployment..."
+          ssh vps << 'ENDSSH'
+            set -e
             cd /home/deployer/url-shortener
             bash /home/deployer/deployments/deploy-url-shortener.sh
           ENDSSH
@@ -406,18 +428,37 @@ jobs:
           sleep 10
           
           echo "Checking API health..."
-          curl -sf https://short.k4scloud.com/api/v1/health || exit 1
+          if curl -sf https://short.k4scloud.com/api/v1/health; then
+            echo "API health check: PASSED"
+          else
+            echo "API health check: FAILED"
+            exit 1
+          fi
           
           echo "Checking frontend..."
-          curl -sf https://short.k4scloud.com/ > /dev/null || exit 1
+          if curl -sf https://short.k4scloud.com/ > /dev/null; then
+            echo "Frontend check: PASSED"
+          else
+            echo "Frontend check: FAILED"
+            exit 1
+          fi
           
           echo "Deployment verified successfully!"
 
       - name: Deployment summary
+        if: success()
         run: |
           echo "### Deployment Successful! :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** https://short.k4scloud.com" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Deployment failure summary
+        if: failure()
+        run: |
+          echo "### Deployment Failed :x:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Check logs above for details**" >> $GITHUB_STEP_SUMMARY
