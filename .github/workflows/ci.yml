@@ -416,17 +416,20 @@ jobs:
       - name: Deploy to VPS
         run: |
           echo "Starting deployment..."
-          ssh vps << 'ENDSSH'
+          ssh vps bash << 'ENDSSH'
             set -e
-
+            
             # Export passwords for deployment script
             export POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
             export REDIS_PASSWORD="${REDIS_PASSWORD}"
-
+            
             # Run deployment
             cd /home/deployer/url-shortener
             bash /home/deployer/deployments/deploy-url-shortener.sh
           ENDSSH
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
       - name: Verify deployment
         run: |
