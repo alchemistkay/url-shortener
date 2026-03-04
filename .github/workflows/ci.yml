@@ -418,6 +418,12 @@ jobs:
           echo "Starting deployment..."
           ssh vps << 'ENDSSH'
             set -e
+
+            # Export passwords for deployment script
+            export POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+            export REDIS_PASSWORD="${REDIS_PASSWORD}"
+
+            # Run deployment
             cd /home/deployer/url-shortener
             bash /home/deployer/deployments/deploy-url-shortener.sh
           ENDSSH
