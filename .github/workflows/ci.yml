@@ -416,13 +416,33 @@ jobs:
       - name: Deploy to VPS
         run: |
           echo "Starting deployment..."
-          ssh vps \
-            POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-            REDIS_PASSWORD="$REDIS_PASSWORD" \
-            bash -c 'cd /home/deployer/url-shortener && bash /home/deployer/deployments/deploy-url-shortener.sh'
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          echo "Commit: ${{ github.sha }}"
+          
+          # Create deployment script with embedded secrets
+          cat > /tmp/deploy_wrapper.sh << 'WRAPPER_EOF'
+          #!/bin/bash
+          set -e
+          export POSTGRES_PASSWORD="__POSTGRES_PASSWORD_PLACEHOLDER__"
+          export REDIS_PASSWORD="__REDIS_PASSWORD_PLACEHOLDER__"
+          cd /home/deployer/url-shortener
+          bash /home/deployer/deployments/deploy-url-shortener.sh
+          WRAPPER_EOF
+          
+          # Replace placeholders with actual secrets
+          sed -i "s|__POSTGRES_PASSWORD_PLACEHOLDER__|${{ secrets.POSTGRES_PASSWORD }}|g" /tmp/deploy_wrapper.sh
+          sed -i "s|__REDIS_PASSWORD_PLACEHOLDER__|${{ secrets.REDIS_PASSWORD }}|g" /tmp/deploy_wrapper.sh
+          
+          chmod +x /tmp/deploy_wrapper.sh
+          
+          # Copy to VPS
+          scp /tmp/deploy_wrapper.sh vps:/tmp/deploy_wrapper.sh
+          
+          # Execute deployment
+          ssh vps "bash /tmp/deploy_wrapper.sh"
+          
+          # Cleanup
+          ssh vps "rm -f /tmp/deploy_wrapper.sh"
+          rm -f /tmp/deploy_wrapper.sh
 
       - name: Verify deployment
         run: |
