@@ -2,6 +2,8 @@
 
 Production-grade URL shortening service with comprehensive observability and automated CI/CD pipeline.
 
+![K4sCloud URL Shortener](docs/img/banner-img.png)
+
 ## Overview
 
 A high-performance URL shortening service built with FastAPI, PostgreSQL, and Redis. Features full monitoring stack with Prometheus and Grafana, containerized deployment with Docker, and complete CI/CD automation using GitHub Actions.
