@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script>
     tailwind.config = {
@@ -111,6 +111,34 @@
     }
     .card:hover { border-color: #2a2a32; }
 
+    /* Glass card — for the main form */
+    .card-glass {
+      background: linear-gradient(
+        145deg,
+        rgba(255,255,255,0.055) 0%,
+        rgba(255,255,255,0.018) 50%,
+        rgba(124,58,237,0.04) 100%
+      );
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom-color: rgba(255,255,255,0.04);
+      border-right-color: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      box-shadow:
+        0 8px 40px rgba(0,0,0,0.6),
+        0 1px 0 rgba(255,255,255,0.08) inset,
+        0 -1px 0 rgba(0,0,0,0.3) inset;
+    }
+
+    /* Hero headline font */
+    .hero-headline {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1.04;
+    }
+
     /* Result card */
     .result-card {
       background: rgba(124,58,237,0.05);
@@ -147,10 +175,9 @@
       letter-spacing: -0.01em;
     }
 
-    /* Scrollbar */
-    .recent-scroll::-webkit-scrollbar { width: 6px; }
-    .recent-scroll::-webkit-scrollbar-track { background: var(--color-scrollbar-track); }
-    .recent-scroll::-webkit-scrollbar-thumb { background: var(--color-scrollbar-thumb); border-radius: 6px; }
+    /* Scrollbar — hidden, scroll still works */
+    .recent-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+    .recent-scroll::-webkit-scrollbar { display: none; }
 
     /* Step number */
     .step-num {
@@ -192,10 +219,6 @@
       <!-- Links -->
       <div style="display: flex; align-items: center; gap: 24px;">
         <a href="#" onclick="openApiDocs(); return false;" class="nav-link">API Docs</a>
-        <a href="#" onclick="openHealthCheck(); return false;" class="nav-link">Health</a>
-        <a href="#shorten-form" style="padding: 6px 14px; background: linear-gradient(135deg,#7c3aed,#6d28d9); border-radius: 7px; font-size: 0.8rem; font-weight: 600; color: #fff; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.82'" onmouseout="this.style.opacity='1'">
-          Shorten URL
-        </a>
       </div>
     </div>
   </nav>
@@ -210,7 +233,7 @@
       <span style="font-size: 0.78rem; font-weight: 500; color: #a78bfa; letter-spacing: 0.02em;">Free · No sign-up required</span>
     </div>
 
-    <h1 style="font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; color: var(--color-text); margin-bottom: 18px;">
+    <h1 class="hero-headline" style="font-size: clamp(2.2rem, 5vw, 3.6rem); color: var(--color-text); margin-bottom: 18px;">
       Shorten URLs<br/>
       <span style="background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Instantly</span>
     </h1>
@@ -219,7 +242,7 @@
     </p>
 
     <!-- ── Main Form Card ── -->
-    <div id="shorten-form" class="card fade-up" style="max-width: 580px; margin: 0 auto; padding: 32px; text-align: left;">
+    <div id="shorten-form" class="card-glass fade-up" style="max-width: 580px; margin: 0 auto; padding: 32px; text-align: left;">
 
       <form id="shortenForm">
         <!-- URL input -->
@@ -298,16 +321,9 @@
         <input type="text" id="shortUrl" readonly class="short-url-input" />
       </div>
 
-      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-        <button onclick="copyToClipboard()" class="btn-purple" style="flex: 1; padding: 11px 18px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #fff; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <i class="fas fa-copy" style="font-size: 0.8rem;"></i> Copy Link
-        </button>
-        <button onclick="viewStats()" class="btn-ghost" style="flex: 1; padding: 11px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <i class="fas fa-chart-bar" style="font-size: 0.8rem;"></i> View Stats
-        </button>
-      </div>
-
-      <div id="urlInfo" style="display: none; padding: 14px 16px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--color-border); font-size: 0.82rem; color: var(--color-text-muted); line-height: 1.9;"></div>
+      <button onclick="copyToClipboard()" class="btn-purple" style="width: 100%; padding: 11px 18px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #fff; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <i class="fas fa-copy" style="font-size: 0.8rem;"></i> Copy Link
+      </button>
     </div>
 
     <!-- Error Card -->
@@ -380,7 +396,6 @@
       </div>
       <div style="display: flex; align-items: center; gap: 16px;">
         <a href="#" onclick="openApiDocs(); return false;" style="font-size: 0.78rem; color: var(--color-text-tertiary); text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='var(--color-text)'" onmouseout="this.style.color='var(--color-text-tertiary)'">API Docs</a>
-        <a href="#" onclick="openHealthCheck(); return false;" style="font-size: 0.78rem; color: var(--color-text-tertiary); text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='var(--color-text)'" onmouseout="this.style.color='var(--color-text-tertiary)'">Health Check</a>
       </div>
     </div>
   </footer>
@@ -440,14 +455,6 @@
       const resultCard = document.getElementById('resultCard');
       resultCard.style.display = 'block';
       document.getElementById('shortUrl').value = data.short_url;
-
-      const infoEl = document.getElementById('urlInfo');
-      let info = `<strong style="color:#9a9a9a;">Original:</strong> <span style="color:#6b6b6b;word-break:break-all;">${data.original_url}</span><br>`;
-      info += `<strong style="color:#9a9a9a;">Code:</strong> <span style="color:#a78bfa;">${data.short_code}</span><br>`;
-      info += `<strong style="color:#9a9a9a;">Created:</strong> ${new Date(data.created_at).toLocaleString()}`;
-      if (data.expires_at) info += `<br><strong style="color:#9a9a9a;">Expires:</strong> ${new Date(data.expires_at).toLocaleString()}`;
-      infoEl.innerHTML = info;
-      infoEl.style.display = 'block';
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -468,28 +475,6 @@
       }).catch(err => alert('Failed to copy: ' + err));
     }
 
-    async function viewStats() {
-      if (!currentShortCode) return;
-      try {
-        const response = await fetch(`${API_BASE_URL}/stats/${currentShortCode}`);
-        const data = await response.json();
-        if (response.ok) {
-          const infoEl = document.getElementById('urlInfo');
-          infoEl.innerHTML = `
-            <strong style="color:#9a9a9a;">Total Clicks:</strong> <span style="color:#a78bfa;font-weight:600;">${data.total_clicks}</span><br>
-            <strong style="color:#9a9a9a;">Original URL:</strong> <span style="color:#6b6b6b;word-break:break-all;">${data.original_url}</span><br>
-            <strong style="color:#9a9a9a;">Active:</strong> ${data.is_active ? '<span style="color:#4ade80;">Yes</span>' : '<span style="color:#f87171;">No</span>'}<br>
-            <strong style="color:#9a9a9a;">Created:</strong> ${new Date(data.created_at).toLocaleString()}
-            ${data.expires_at ? `<br><strong style="color:#9a9a9a;">Expires:</strong> ${new Date(data.expires_at).toLocaleString()}` : ''}
-          `;
-          infoEl.style.display = 'block';
-        } else {
-          alert('Failed to load stats: ' + data.detail);
-        }
-      } catch (error) {
-        alert('Network error: ' + error.message);
-      }
-    }
 
     function saveToRecent(data) {
       let recent = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
