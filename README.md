@@ -171,7 +171,7 @@ graph TD
     style Prom fill:#E6522C,stroke:#b33d1e,color:#ffffff
     style Graf fill:#F46800,stroke:#c05200,color:#ffffff
     style Kuma fill:#5CDD8B,stroke:#3aaf69,color:#1a1a1a
-    style obs fill:#1a1025,stroke:#E6522C,stroke-width:3px,color:#f0f0f0
+    style obs fill:#1a1025,stroke:#3d2d50,color:#f0f0f0
 ```
 
 ### Request Flow
