@@ -113,9 +113,20 @@
 
 ## Architecture
 
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=python,fastapi,postgres,redis,docker,nginx,prometheus,grafana&theme=dark" />
-</p>
+<table align="center">
+<tr>
+  <td align="center"><img src="https://cdn.simpleicons.org/python" width="40" height="40" alt="Python"/><br/><sub>Python 3.11</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/fastapi" width="40" height="40" alt="FastAPI"/><br/><sub>FastAPI</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/postgresql" width="40" height="40" alt="PostgreSQL"/><br/><sub>PostgreSQL 17</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/redis" width="40" height="40" alt="Redis"/><br/><sub>Redis 7</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/docker" width="40" height="40" alt="Docker"/><br/><sub>Docker</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/nginx" width="40" height="40" alt="Nginx"/><br/><sub>Nginx</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/traefikproxy" width="40" height="40" alt="Traefik"/><br/><sub>Traefik</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/prometheus" width="40" height="40" alt="Prometheus"/><br/><sub>Prometheus</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/grafana" width="40" height="40" alt="Grafana"/><br/><sub>Grafana</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/uptimekuma" width="40" height="40" alt="Uptime Kuma"/><br/><sub>Uptime Kuma</sub></td>
+</tr>
+</table>
 
 ```mermaid
 graph TD
