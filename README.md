@@ -169,24 +169,19 @@ graph TD
 
 ```mermaid
 flowchart LR
-    S1["🔒 Stage 1\nSource Security"]
-    S2["🔨 Stage 2\nBuild & Test"]
-    S3["🧪 Stage 3\nIntegration Tests"]
-    S4["📦 Stage 4\nRelease to GHCR"]
-    S5["🚀 Stage 5\nDeploy to VPS"]
+    S1["&#128274; Source\nSecurity"]
+    S2["&#9881; Build\n& Test"]
+    S3["&#128203; Integration\nTests"]
+    S4["&#128230; Release\nto GHCR"]
+    S5["&#9992; Deploy\nto VPS"]
 
-    S1 --> S2
-    S2 --> S3
-    S2 --> S4
-    S3 --> S4
-    S3 --> S5
-    S4 --> S5
+    S1 --> S2 --> S3 --> S4 --> S5
 
-    style S1 fill:#21262d,stroke:#6e7681,color:#cdd9e5
-    style S2 fill:#21262d,stroke:#6e7681,color:#cdd9e5
-    style S3 fill:#21262d,stroke:#6e7681,color:#cdd9e5
-    style S4 fill:#21262d,stroke:#6e7681,color:#cdd9e5
-    style S5 fill:#0d1117,stroke:#2ea043,color:#2ea043
+    style S1 fill:#0f1f2e,stroke:#3b82f6,color:#93c5fd
+    style S2 fill:#0f2218,stroke:#22c55e,color:#86efac
+    style S3 fill:#1e1228,stroke:#a855f7,color:#d8b4fe
+    style S4 fill:#221e0f,stroke:#eab308,color:#fde047
+    style S5 fill:#0d1f0d,stroke:#2ea043,color:#4ade80
 ```
 
 <table>
