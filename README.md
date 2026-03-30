@@ -365,12 +365,29 @@ Response: 200 OK
 
 ### Production Deployment
 
-Production deployment is fully automated via GitHub Actions:
+Production deployment is fully automated via GitHub Actions. On every push to `main`, the 5-stage pipeline runs and — if all stages pass — Stage 5 SSHs into the VPS and triggers [`deploy-url-shortener.sh`](scripts/deploy.sh) (the reference copy lives at `scripts/deploy.sh`; the live copy runs from `/home/deployer/deployments/` on the VPS).
 
-1. Push code to `main` branch
-2. CI/CD pipeline runs automatically (5 stages)
-3. On success: images pushed to GHCR, SSH deploy to VPS
-4. Post-deploy health checks — automatic rollback on failure
+**What the deploy script does:**
+
+```
+1. Inject secrets       → Writes POSTGRES_PASSWORD + REDIS_PASSWORD to .env (chmod 600)
+2. Backup current state → Snapshots running containers + .env to /home/deployer/backups/
+3. Pull new images      → ghcr.io/alchemistkay/url-shortener/backend:latest
+                          ghcr.io/alchemistkay/url-shortener/frontend:latest
+4. Diff image digests   → Skips restart if image is unchanged (no-op deploy)
+5. Rolling restart      → docker-compose up -d api  →  health poll (60 retries × 2s)
+                          docker-compose up -d frontend
+6. Health checks        → curl http://localhost:8000/api/v1/health
+                          curl http://localhost:80/
+7. Auto-rollback        → On failure: re-tags old image as :latest, restarts, verifies
+8. Image pruning        → Retains last 3 image versions, removes older digests
+```
+
+| Outcome | Exit code |
+|---|---|
+| All checks pass | `0` — pipeline reports green |
+| API unhealthy post-deploy | `1` — auto-rollback triggered |
+| Rollback also fails | `2` — manual intervention required |
 
 ### Prerequisites
 - Docker & Docker Compose
