@@ -132,20 +132,20 @@
 graph TD
     Client["Browser / API Client\nHTTPS :443"]
 
-    subgraph VPS["VPS — Docker Network"]
+    subgraph vps["VPS — Docker Network"]
         Traefik["Traefik\nReverse Proxy + SSL/TLS"]
 
-        subgraph App["Application Layer"]
+        subgraph app["Application Layer"]
             Frontend["Nginx\nStatic Frontend"]
             API["FastAPI\nPython 3.11 · Uvicorn"]
         end
 
-        subgraph Data["Data Layer"]
+        subgraph data["Data Layer"]
             PG[("PostgreSQL 17\nPersistent Store")]
             Redis[("Redis 7\nCache Layer")]
         end
 
-        subgraph Obs["Observability Stack"]
+        subgraph obs["Observability Stack"]
             Prom["Prometheus\nMetrics Scrape"]
             Graf["Grafana\nDashboards"]
             Kuma["Uptime Kuma\nAvailability Monitor"]
@@ -161,6 +161,17 @@ graph TD
     API -->|"/metrics endpoint"| Prom
     Prom --> Graf
     Kuma -->|"HTTP probe"| API
+
+    style Client fill:#1f2937,stroke:#6b7280,color:#f9fafb
+    style Traefik fill:#24A1C1,stroke:#1a7a94,color:#ffffff
+    style Frontend fill:#009639,stroke:#006b28,color:#ffffff
+    style API fill:#009688,stroke:#00695c,color:#ffffff
+    style PG fill:#4169E1,stroke:#2f50b8,color:#ffffff
+    style Redis fill:#FF4438,stroke:#cc2f25,color:#ffffff
+    style Prom fill:#E6522C,stroke:#b33d1e,color:#ffffff
+    style Graf fill:#F46800,stroke:#c05200,color:#ffffff
+    style Kuma fill:#5CDD8B,stroke:#3aaf69,color:#1a1a1a
+    style obs fill:#1a1025,stroke:#E6522C,stroke-width:3px,color:#f0f0f0
 ```
 
 ### Request Flow
