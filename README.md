@@ -118,7 +118,7 @@
   <td align="center"><img src="https://cdn.simpleicons.org/python" width="40" height="40" alt="Python"/><br/><sub>Python 3.11</sub></td>
   <td align="center"><img src="https://cdn.simpleicons.org/fastapi" width="40" height="40" alt="FastAPI"/><br/><sub>FastAPI</sub></td>
   <td align="center"><img src="https://cdn.simpleicons.org/postgresql" width="40" height="40" alt="PostgreSQL"/><br/><sub>PostgreSQL 17</sub></td>
-  <td align="center"><img src="https://cdn.simpleicons.org/redis" width="40" height="40" alt="Redis"/><br/><sub>Redis 7</sub></td>
+  <td align="center"><img src="https://skillicons.dev/icons?i=redis" width="40" height="40" alt="Redis"/><br/><sub>Redis 7</sub></td>
   <td align="center"><img src="https://cdn.simpleicons.org/docker" width="40" height="40" alt="Docker"/><br/><sub>Docker</sub></td>
   <td align="center"><img src="https://cdn.simpleicons.org/nginx" width="40" height="40" alt="Nginx"/><br/><sub>Nginx</sub></td>
   <td align="center"><img src="https://cdn.simpleicons.org/traefikproxy" width="40" height="40" alt="Traefik"/><br/><sub>Traefik</sub></td>
@@ -130,25 +130,25 @@
 
 ```mermaid
 graph TD
-    Client["🌐 Browser / API Client\nHTTPS :443"]
+    Client["Browser / API Client\nHTTPS :443"]
 
     subgraph VPS["VPS — Docker Network"]
-        Traefik["⚡ Traefik\nReverse Proxy + SSL/TLS"]
+        Traefik["Traefik\nReverse Proxy + SSL/TLS"]
 
         subgraph App["Application Layer"]
-            Frontend["🗂 Nginx\nStatic Frontend"]
-            API["🐍 FastAPI\nPython 3.11 · Uvicorn"]
+            Frontend["Nginx\nStatic Frontend"]
+            API["FastAPI\nPython 3.11 · Uvicorn"]
         end
 
         subgraph Data["Data Layer"]
-            PG[("🐘 PostgreSQL 17\nPersistent Store")]
-            Redis[("⚡ Redis 7\nCache Layer")]
+            PG[("PostgreSQL 17\nPersistent Store")]
+            Redis[("Redis 7\nCache Layer")]
         end
 
         subgraph Obs["Observability Stack"]
-            Prom["📊 Prometheus\nMetrics Scrape"]
-            Graf["📈 Grafana\nDashboards"]
-            Kuma["🟢 Uptime Kuma\nAvailability Monitor"]
+            Prom["Prometheus\nMetrics Scrape"]
+            Graf["Grafana\nDashboards"]
+            Kuma["Uptime Kuma\nAvailability Monitor"]
         end
     end
 
