@@ -128,40 +128,76 @@
 </tr>
 </table>
 
-```mermaid
-graph TD
-    Client["Browser / API Client\nHTTPS :443"]
-
-    subgraph VPS["VPS — Docker Network"]
-        Traefik["Traefik\nReverse Proxy + SSL/TLS"]
-
-        subgraph App["Application Layer"]
-            Frontend["Nginx\nStatic Frontend"]
-            API["FastAPI\nPython 3.11 · Uvicorn"]
-        end
-
-        subgraph Data["Data Layer"]
-            PG[("PostgreSQL 17\nPersistent Store")]
-            Redis[("Redis 7\nCache Layer")]
-        end
-
-        subgraph Obs["Observability Stack"]
-            Prom["Prometheus\nMetrics Scrape"]
-            Graf["Grafana\nDashboards"]
-            Kuma["Uptime Kuma\nAvailability Monitor"]
-        end
-    end
-
-    Client -->|"HTTPS request"| Traefik
-    Traefik -->|"Host: / root path"| Frontend
-    Traefik -->|"PathPrefix: /api/v1"| API
-    Traefik -->|"GET /{short_code}"| API
-    API -->|"persist / query"| PG
-    API -->|"cache reads/writes\nTTL: 3600s"| Redis
-    API -->|"/metrics endpoint"| Prom
-    Prom --> Graf
-    Kuma -->|"HTTP probe"| API
-```
+<table align="center">
+  <tr>
+    <td colspan="5" align="center">
+      <br/>
+      <b>Client</b> &nbsp;—&nbsp; HTTPS :443
+      <br/>↓<br/><br/>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="5" align="center">
+      <img src="https://cdn.simpleicons.org/traefikproxy" width="42" height="42"/><br/>
+      <b>Traefik Proxy</b><br/>
+      <sub>Reverse Proxy · SSL/TLS Termination</sub>
+      <br/><br/>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="right">↙&nbsp;&nbsp;&nbsp;</td>
+    <td align="center"></td>
+    <td colspan="2" align="left">&nbsp;&nbsp;&nbsp;↘</td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" valign="top">
+      <img src="https://cdn.simpleicons.org/nginx" width="42" height="42"/><br/>
+      <b>Nginx</b><br/>
+      <sub>Static Frontend</sub>
+    </td>
+    <td align="center"></td>
+    <td colspan="2" align="center" valign="top">
+      <img src="https://cdn.simpleicons.org/fastapi" width="42" height="42"/><br/>
+      <b>FastAPI</b><br/>
+      <sub>Python 3.11 · Uvicorn</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"></td>
+    <td align="center"></td>
+    <td colspan="2" align="center">↓<br/><br/></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top">
+      <img src="https://cdn.simpleicons.org/postgresql" width="36" height="36"/><br/>
+      <sub><b>PostgreSQL 17</b></sub><br/>
+      <sub>Persistent Store</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="https://skillicons.dev/icons?i=redis" width="36" height="36"/><br/>
+      <sub><b>Redis 7</b></sub><br/>
+      <sub>Cache Layer</sub>
+    </td>
+    <td align="center"></td>
+    <td align="center" valign="top">
+      <img src="https://cdn.simpleicons.org/prometheus" width="36" height="36"/><br/>
+      <sub><b>Prometheus</b></sub><br/>
+      <sub>Metrics</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="https://cdn.simpleicons.org/grafana" width="36" height="36"/><br/>
+      <sub><b>Grafana</b></sub><br/>
+      <sub>Dashboards</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="5" align="center">
+      <br/>
+      <img src="https://cdn.simpleicons.org/uptimekuma" width="28" height="28"/>
+      &nbsp;<sub><b>Uptime Kuma</b> — availability monitoring via HTTP probes</sub>
+    </td>
+  </tr>
+</table>
 
 ### Request Flow
 
