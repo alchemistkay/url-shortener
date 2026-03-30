@@ -113,31 +113,42 @@
 
 ## Architecture
 
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=python,fastapi,postgres,redis,docker,nginx,prometheus,grafana&theme=dark" />
-</p>
+<table align="center">
+<tr>
+  <td align="center"><img src="https://cdn.simpleicons.org/python" width="40" height="40" alt="Python"/><br/><sub>Python 3.11</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/fastapi" width="40" height="40" alt="FastAPI"/><br/><sub>FastAPI</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/postgresql" width="40" height="40" alt="PostgreSQL"/><br/><sub>PostgreSQL 17</sub></td>
+  <td align="center"><img src="https://skillicons.dev/icons?i=redis" width="40" height="40" alt="Redis"/><br/><sub>Redis 7</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/docker" width="40" height="40" alt="Docker"/><br/><sub>Docker</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/nginx" width="40" height="40" alt="Nginx"/><br/><sub>Nginx</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/traefikproxy" width="40" height="40" alt="Traefik"/><br/><sub>Traefik</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/prometheus" width="40" height="40" alt="Prometheus"/><br/><sub>Prometheus</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/grafana" width="40" height="40" alt="Grafana"/><br/><sub>Grafana</sub></td>
+  <td align="center"><img src="https://cdn.simpleicons.org/uptimekuma" width="40" height="40" alt="Uptime Kuma"/><br/><sub>Uptime Kuma</sub></td>
+</tr>
+</table>
 
 ```mermaid
 graph TD
-    Client["🌐 Browser / API Client\nHTTPS :443"]
+    Client["Browser / API Client\nHTTPS :443"]
 
-    subgraph VPS["VPS — Docker Network"]
-        Traefik["⚡ Traefik\nReverse Proxy + SSL/TLS"]
+    subgraph vps["VPS — Docker Network"]
+        Traefik["Traefik\nReverse Proxy + SSL/TLS"]
 
-        subgraph App["Application Layer"]
-            Frontend["🗂 Nginx\nStatic Frontend"]
-            API["🐍 FastAPI\nPython 3.11 · Uvicorn"]
+        subgraph app["Application Layer"]
+            Frontend["Nginx\nStatic Frontend"]
+            API["FastAPI\nPython 3.11 · Uvicorn"]
         end
 
-        subgraph Data["Data Layer"]
-            PG[("🐘 PostgreSQL 17\nPersistent Store")]
-            Redis[("⚡ Redis 7\nCache Layer")]
+        subgraph data["Data Layer"]
+            PG[("PostgreSQL 17\nPersistent Store")]
+            Redis[("Redis 7\nCache Layer")]
         end
 
-        subgraph Obs["Observability Stack"]
-            Prom["📊 Prometheus\nMetrics Scrape"]
-            Graf["📈 Grafana\nDashboards"]
-            Kuma["🟢 Uptime Kuma\nAvailability Monitor"]
+        subgraph obs["Observability Stack"]
+            Prom["Prometheus\nMetrics Scrape"]
+            Graf["Grafana\nDashboards"]
+            Kuma["Uptime Kuma\nAvailability Monitor"]
         end
     end
 
@@ -150,6 +161,17 @@ graph TD
     API -->|"/metrics endpoint"| Prom
     Prom --> Graf
     Kuma -->|"HTTP probe"| API
+
+    style Client fill:#1f2937,stroke:#6b7280,color:#f9fafb
+    style Traefik fill:#24A1C1,stroke:#1a7a94,color:#ffffff
+    style Frontend fill:#009639,stroke:#006b28,color:#ffffff
+    style API fill:#009688,stroke:#00695c,color:#ffffff
+    style PG fill:#4169E1,stroke:#2f50b8,color:#ffffff
+    style Redis fill:#FF4438,stroke:#cc2f25,color:#ffffff
+    style Prom fill:#E6522C,stroke:#b33d1e,color:#ffffff
+    style Graf fill:#F46800,stroke:#c05200,color:#ffffff
+    style Kuma fill:#5CDD8B,stroke:#3aaf69,color:#1a1a1a
+    style obs fill:#1a1025,stroke:#3d2d50,color:#f0f0f0
 ```
 
 ### Request Flow
@@ -343,12 +365,29 @@ Response: 200 OK
 
 ### Production Deployment
 
-Production deployment is fully automated via GitHub Actions:
+Production deployment is fully automated via GitHub Actions. On every push to `main`, the 5-stage pipeline runs and — if all stages pass — Stage 5 SSHs into the VPS and triggers [`deploy-url-shortener.sh`](scripts/deploy.sh) (the reference copy lives at `scripts/deploy.sh`; the live copy runs from `/home/deployer/deployments/` on the VPS).
 
-1. Push code to `main` branch
-2. CI/CD pipeline runs automatically (5 stages)
-3. On success: images pushed to GHCR, SSH deploy to VPS
-4. Post-deploy health checks — automatic rollback on failure
+**What the deploy script does:**
+
+```
+1. Inject secrets       → Writes POSTGRES_PASSWORD + REDIS_PASSWORD to .env (chmod 600)
+2. Backup current state → Snapshots running containers + .env to /home/deployer/backups/
+3. Pull new images      → ghcr.io/alchemistkay/url-shortener/backend:latest
+                          ghcr.io/alchemistkay/url-shortener/frontend:latest
+4. Diff image digests   → Skips restart if image is unchanged (no-op deploy)
+5. Rolling restart      → docker-compose up -d api  →  health poll (60 retries × 2s)
+                          docker-compose up -d frontend
+6. Health checks        → curl http://localhost:8000/api/v1/health
+                          curl http://localhost:80/
+7. Auto-rollback        → On failure: re-tags old image as :latest, restarts, verifies
+8. Image pruning        → Retains last 3 image versions, removes older digests
+```
+
+| Outcome | Exit code |
+|---|---|
+| All checks pass | `0` — pipeline reports green |
+| API unhealthy post-deploy | `1` — auto-rollback triggered |
+| Rollback also fails | `2` — manual intervention required |
 
 ### Prerequisites
 - Docker & Docker Compose
